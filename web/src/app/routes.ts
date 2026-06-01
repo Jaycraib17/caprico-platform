@@ -114,6 +114,7 @@ if (import.meta.env.DEV) {
 }
 const tree = buildRouteTree(__dirname);
 const notFound = route('*?', './__create/not-found.tsx');
+// Files like ./admin/jobs/new/page.jsx are discovered by generateRoutes(tree); keep the catch-all last.
 const routes = [...generateRoutes(tree), notFound];
 
 export default routes;
