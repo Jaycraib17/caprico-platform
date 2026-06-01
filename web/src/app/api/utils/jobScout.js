@@ -1,4 +1,4 @@
-import sql from './sql';
+import sql from './sql.js';
 
 export const JOB_SCOUT_SOURCES = [
   'we_work_remotely',
