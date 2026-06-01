@@ -1,5 +1,5 @@
-import { requireAdmin } from '../../../utils/adminAuth';
-import { fetchJobPosting, jsonNoCache } from '../../../utils/directJobImporter';
+import { requireAdmin } from '../../../utils/adminAuth.js';
+import { fetchJobPosting, jsonNoCache } from '../../../utils/directJobImporter.js';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
