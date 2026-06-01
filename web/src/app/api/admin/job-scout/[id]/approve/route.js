@@ -1,5 +1,5 @@
-import { requireAdmin } from '../../../../utils/adminAuth';
-import sql from '../../../../utils/sql';
+import { requireAdmin } from '../../../../utils/adminAuth.js';
+import sql from '../../../../utils/sql.js';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
