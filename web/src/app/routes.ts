@@ -54,16 +54,16 @@ function buildRouteTree(dir: string, basePath = ''): Tree {
 			node.children.push(childNode);
 		} else if (file === 'page.jsx') {
 			node.hasPage = true;
-    }
+		}
 	}
 
 	return node;
 }
 
-function generateRoutes(node: Tree): RouteConfigEntry[] {
+function generateRoutes(node: Tree, skipPaths = new Set<string>()): RouteConfigEntry[] {
 	const routes: RouteConfigEntry[] = [];
 
-	if (node.hasPage) {
+	if (node.hasPage && !skipPaths.has(node.path)) {
 		const componentPath =
 			node.path === '' ? `./${node.path}page.jsx` : `./${node.path}/page.jsx`;
 
@@ -99,7 +99,7 @@ function generateRoutes(node: Tree): RouteConfigEntry[] {
 	}
 
 	for (const child of node.children) {
-		routes.push(...generateRoutes(child));
+		routes.push(...generateRoutes(child, skipPaths));
 	}
 
 	return routes;
@@ -113,7 +113,9 @@ if (import.meta.env.DEV) {
 	}
 }
 const tree = buildRouteTree(__dirname);
+const explicitRoutePaths = new Set(['admin/jobs/new']);
+const explicitRoutes = [route('admin/jobs/new', './admin/jobs/new/page.jsx')];
 const notFound = route('*?', './__create/not-found.tsx');
-const routes = [...generateRoutes(tree), notFound];
+const routes = [...explicitRoutes, ...generateRoutes(tree, explicitRoutePaths), notFound];
 
 export default routes;
