@@ -54,16 +54,16 @@ function buildRouteTree(dir: string, basePath = ''): Tree {
 			node.children.push(childNode);
 		} else if (file === 'page.jsx') {
 			node.hasPage = true;
-    }
+		}
 	}
 
 	return node;
 }
 
-function generateRoutes(node: Tree, skipPaths = new Set<string>()): RouteConfigEntry[] {
+function generateRoutes(node: Tree): RouteConfigEntry[] {
 	const routes: RouteConfigEntry[] = [];
 
-	if (node.hasPage && !skipPaths.has(node.path)) {
+	if (node.hasPage) {
 		const componentPath =
 			node.path === '' ? `./${node.path}page.jsx` : `./${node.path}/page.jsx`;
 
@@ -99,7 +99,7 @@ function generateRoutes(node: Tree, skipPaths = new Set<string>()): RouteConfigE
 	}
 
 	for (const child of node.children) {
-		routes.push(...generateRoutes(child, skipPaths));
+		routes.push(...generateRoutes(child));
 	}
 
 	return routes;
@@ -113,17 +113,7 @@ if (import.meta.env.DEV) {
 	}
 }
 const tree = buildRouteTree(__dirname);
-
-// Keep critical admin routes explicit so production builds do not depend solely
-// on the filesystem route scanner picking up newly-added nested pages.
-const explicitRoutePaths = new Set(['admin/jobs/new', 'admin/job/new', 'admin/test-route']);
-const explicitRoutes = [
-	route('admin/jobs/new', './admin/jobs/new/page.jsx'),
-	route('admin/job/new', './admin/jobs/new/page.jsx'),
-	route('admin/test-route', './admin/test-route/page.jsx'),
-];
-
 const notFound = route('*?', './__create/not-found.tsx');
-const routes = [...explicitRoutes, ...generateRoutes(tree, explicitRoutePaths), notFound];
+const routes = [...generateRoutes(tree), notFound];
 
 export default routes;

@@ -87,8 +87,6 @@ export default function AdminJobsPage() {
         <nav style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 26 }} aria-label="Job admin tools">
           <Link to="/admin/jobs/new" style={{ ...buttonStyle, background: '#d946ef', color: '#fff', borderColor: '#d946ef' }}>➕ Add Direct Job</Link>
           <Link to="/admin/jobs/new" style={{ ...buttonStyle, background: '#7e22ce', color: '#fff', borderColor: '#7e22ce' }}>🔗 Import Job URL</Link>
-          <Link to="/admin/job/new" style={{ ...buttonStyle, background: '#fff', color: '#a21caf' }}>🧪 Import alias</Link>
-          <Link to="/admin/test-route" style={{ ...buttonStyle, background: '#fff', color: '#a21caf' }}>🧪 Test route</Link>
           <Link to="/admin/job-scout" style={{ ...buttonStyle, background: '#fff', color: '#86198f' }}>🛰️ Job Scout</Link>
           <a href="/admin/jobs/fix-apply-links" style={{ ...buttonStyle, background: '#fff', color: '#6b21a8' }}>🔧 Fix Apply Links</a>
           <a href="/admin/jobs/duplicates" style={{ ...buttonStyle, background: '#fff', color: '#6b21a8' }}>👯 Manage Duplicates</a>
