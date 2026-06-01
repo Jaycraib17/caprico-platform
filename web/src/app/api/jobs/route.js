@@ -19,6 +19,27 @@ function truthy(value) {
 
 async function ensurePublicJobsSchema() {
   await ensureDirectJobSchema();
+  await sql`
+    CREATE TABLE IF NOT EXISTS companies (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT,
+      logo_url TEXT,
+      remote_policy TEXT,
+      careers_url TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql`ALTER TABLE companies ADD COLUMN IF NOT EXISTS id BIGSERIAL;`;
+  await sql`ALTER TABLE companies ADD COLUMN IF NOT EXISTS name TEXT;`;
+  await sql`ALTER TABLE companies ADD COLUMN IF NOT EXISTS slug TEXT;`;
+  await sql`ALTER TABLE companies ADD COLUMN IF NOT EXISTS logo_url TEXT;`;
+  await sql`ALTER TABLE companies ADD COLUMN IF NOT EXISTS remote_policy TEXT;`;
+  await sql`ALTER TABLE companies ADD COLUMN IF NOT EXISTS careers_url TEXT;`;
+  await sql`ALTER TABLE companies ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`;
+  await sql`ALTER TABLE companies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_companies_slug ON companies (slug);`;
   await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS company_id BIGINT;`;
   await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS is_featured BOOLEAN NOT NULL DEFAULT false;`;
   await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS posted_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`;
