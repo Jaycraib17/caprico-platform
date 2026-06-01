@@ -1,5 +1,7 @@
-import { readdir, stat } from 'node:fs/promises';
-import { join } from 'node:path';
+import { access, readdir, stat } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { cwd } from 'node:process';
+import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import type { Handler } from 'hono/types';
@@ -8,16 +10,56 @@ import updatedFetch from '../src/__create/fetch';
 const API_BASENAME = '/api';
 const api = new Hono();
 
-// Get current directory
-const __dirname = join(fileURLToPath(new URL('.', import.meta.url)), '../src/app/api');
+// Source-relative API directory used in development. In production, the server
+// runs from build/server, so this path may not exist and must not be assumed.
+const sourceRelativeApiDir = join(fileURLToPath(new URL('.', import.meta.url)), '../src/app/api');
+const apiRouteModules = import.meta.glob<Record<string, RouteHandler>>('../src/app/api/**/route.js');
+
 if (globalThis.fetch) {
   globalThis.fetch = updatedFetch;
 }
 
-// Recursively find all route.js files
-async function findRouteFiles(dir: string): Promise<string[]> {
+type RouteHandler = (request: Request, context: { params: Record<string, string> }) => Response | Promise<Response>;
+
+type RouteFile = {
+  id: string;
+  filePath?: string;
+  rootDir?: string;
+  loader?: () => Promise<Record<string, RouteHandler>>;
+};
+
+async function directoryExists(dir: string): Promise<boolean> {
+  try {
+    await access(dir, constants.R_OK);
+    return (await stat(dir)).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function unique(values: string[]) {
+  return [...new Set(values)];
+}
+
+function getApiDirectoryCandidates() {
+  return unique([
+    sourceRelativeApiDir,
+    join(cwd(), 'src/app/api'),
+    join(cwd(), 'app/api'),
+    join(cwd(), 'web/src/app/api'),
+  ]);
+}
+
+// Recursively find all route.js files. Missing directories are skipped so a
+// production build cannot crash while scanning build/server/src/app/api.
+async function findRouteFiles(dir: string, rootDir = dir): Promise<RouteFile[]> {
+  if (!(await directoryExists(dir))) {
+    console.warn(`Skipping API route scan; directory does not exist: ${dir}`);
+    return [];
+  }
+
   const files = await readdir(dir);
-  let routes: string[] = [];
+  let routes: RouteFile[] = [];
 
   for (const file of files) {
     try {
@@ -25,13 +67,14 @@ async function findRouteFiles(dir: string): Promise<string[]> {
       const statResult = await stat(filePath);
 
       if (statResult.isDirectory()) {
-        routes = routes.concat(await findRouteFiles(filePath));
+        routes = routes.concat(await findRouteFiles(filePath, rootDir));
       } else if (file === 'route.js') {
+        const routeFile = { id: filePath, filePath, rootDir };
         // Handle root route.js specially
-        if (filePath === join(__dirname, 'route.js')) {
-          routes.unshift(filePath); // Add to beginning of array
+        if (filePath === join(rootDir, 'route.js')) {
+          routes.unshift(routeFile); // Add to beginning of array
         } else {
-          routes.push(filePath);
+          routes.push(routeFile);
         }
       }
     } catch (error) {
@@ -42,9 +85,36 @@ async function findRouteFiles(dir: string): Promise<string[]> {
   return routes;
 }
 
+async function findApiRouteFiles(): Promise<RouteFile[]> {
+  const candidates = getApiDirectoryCandidates();
+  const existingCandidates = [];
+  for (const candidate of candidates) {
+    if (await directoryExists(candidate)) existingCandidates.push(candidate);
+  }
+
+  if (existingCandidates.length === 0) {
+    console.warn(
+      `No API route directories found. Skipping filesystem API scan. Checked: ${candidates.join(', ')}`
+    );
+    return [];
+  }
+
+  const routes: RouteFile[] = [];
+  for (const dir of existingCandidates) {
+    routes.push(...(await findRouteFiles(dir, dir)));
+  }
+  return routes;
+}
+
+function getGlobRouteFiles(): RouteFile[] {
+  return Object.entries(apiRouteModules).map(([id, loader]) => ({ id, loader }));
+}
+
 // Helper function to transform file path to Hono route path
-function getHonoPath(routeFile: string): { name: string; pattern: string }[] {
-  const relativePath = routeFile.replace(__dirname, '');
+function getHonoPath(routeFile: RouteFile): { name: string; pattern: string }[] {
+  const relativePath = routeFile.filePath && routeFile.rootDir
+    ? relative(routeFile.rootDir, routeFile.filePath)
+    : routeFile.id.replace(/^\.\.\/src\/app\/api\//, '');
   const parts = relativePath.split('/').filter(Boolean);
   const routeParts = parts.slice(0, -1); // Remove 'route.js'
   if (routeParts.length === 0) {
@@ -63,25 +133,29 @@ function getHonoPath(routeFile: string): { name: string; pattern: string }[] {
   return transformedParts;
 }
 
+async function loadRouteModule(routeFile: RouteFile) {
+  if (routeFile.loader) return routeFile.loader();
+  return import(/* @vite-ignore */ `${routeFile.filePath}?update=${Date.now()}`);
+}
+
 // Import and register all routes
 async function registerRoutes() {
-  const routeFiles = (
-    await findRouteFiles(__dirname).catch((error) => {
-      console.error('Error finding route files:', error);
-      return [];
-    })
-  )
-    .slice()
-    .sort((a, b) => {
-      return b.length - a.length;
-    });
+  let routeFiles = await findApiRouteFiles();
+
+  // Production builds may not include source files on disk. Fall back to Vite's
+  // manifest-backed glob modules so pages still render and APIs can register.
+  if (routeFiles.length === 0) {
+    routeFiles = getGlobRouteFiles();
+  }
+
+  routeFiles = routeFiles.slice().sort((a, b) => b.id.length - a.id.length);
 
   // Clear existing routes
   api.routes = [];
 
   for (const routeFile of routeFiles) {
     try {
-      const route = await import(/* @vite-ignore */ `${routeFile}?update=${Date.now()}`);
+      const route = await loadRouteModule(routeFile) as Record<string, RouteHandler>;
 
       const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
       for (const method of methods) {
@@ -91,9 +165,9 @@ async function registerRoutes() {
             const honoPath = `/${parts.map(({ pattern }) => pattern).join('/')}`;
             const handler: Handler = async (c) => {
               const params = c.req.param();
-              if (import.meta.env.DEV) {
+              if (import.meta.env.DEV && routeFile.filePath) {
                 const updatedRoute = await import(
-                  /* @vite-ignore */ `${routeFile}?update=${Date.now()}`
+                  /* @vite-ignore */ `${routeFile.filePath}?update=${Date.now()}`
                 );
                 return await updatedRoute[method](c.req.raw, { params });
               }
@@ -122,17 +196,19 @@ async function registerRoutes() {
             }
           }
         } catch (error) {
-          console.error(`Error registering route ${routeFile} for method ${method}:`, error);
+          console.error(`Error registering route ${routeFile.id} for method ${method}:`, error);
         }
       }
     } catch (error) {
-      console.error(`Error importing route file ${routeFile}:`, error);
+      console.error(`Error importing route file ${routeFile.id}:`, error);
     }
   }
 }
 
-// Initial route registration
-await registerRoutes();
+// Initial route registration should never prevent the server from starting.
+await registerRoutes().catch((error) => {
+  console.warn('API route auto-registration failed; continuing without registered API routes:', error);
+});
 
 // Hot reload routes in development
 if (import.meta.env.DEV) {
