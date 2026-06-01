@@ -1,0 +1,82 @@
+{
+  "expo": {
+    "name": "b0431bdd-6fdc-4fa8-b08e-811b85688510",
+    "slug": "b0431bdd-6fdc-4fa8-b08e-811b85688510",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "capriremote.b0431bdd-6fdc-4fa8-b08e-811b85688510",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.createinc.b0431bdd6fdc4fa8b08e811b85688510",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app does not use your camera.",
+        "NSContactsUsageDescription": "This app does not use your contacts.",
+        "NSCalendarsUsageDescription": "This app does not use your calendar.",
+        "NSCalendarsFullAccessUsageDescription": "This app does not use your calendar.",
+        "NSRemindersUsageDescription": "This app does not use your reminders.",
+        "NSRemindersFullAccessUsageDescription": "This app does not use your reminders.",
+        "NSMicrophoneUsageDescription": "This app does not use your microphone.",
+        "NSPhotoLibraryUsageDescription": "This app does not use your photo library.",
+        "NSPhotoLibraryAddUsageDescription": "This app does not use your photo library.",
+        "NSLocationWhenInUseUsageDescription": "This app does not use your location.",
+        "NSLocationAlwaysUsageDescription": "This app does not use your location.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app does not use your location.",
+        "NSSpeechRecognitionUsageDescription": "This app does not use your speech recognition.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.createinc.ab0431bdd6fdc4fa8b08e811b85688510"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "33d76ecd-e810-4e26-a7ed-778113f4ecd5"
+      }
+    },
+    "owner": "create-inc",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/33d76ecd-e810-4e26-a7ed-778113f4ecd5"
+    }
+  }
+}
