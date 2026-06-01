@@ -1,6 +1,6 @@
-'use client';
-
-import React from 'react';
+import { requireAdmin } from '../../utils/adminAuth.js';
+import sql from '../../utils/sql.js';
+import { createDirectJob, ensureDirectJobSchema, jsonNoCache } from '../../utils/directJobImporter.js';
 import { useNavigate } from 'react-router';
 
 export default function JobsAddRedirectPage() {
