@@ -116,9 +116,10 @@ const tree = buildRouteTree(__dirname);
 
 // Keep critical admin routes explicit so production builds do not depend solely
 // on the filesystem route scanner picking up newly-added nested pages.
-const explicitRoutePaths = new Set(['admin/jobs/new', 'jobs/add']);
+const explicitRoutePaths = new Set(['admin/jobs/new', 'admin/jobs/add', 'jobs/add']);
 const explicitRoutes = [
 	route('admin/jobs/new', './admin/jobs/new/page.jsx'),
+	route('admin/jobs/add', './admin/jobs/add/page.jsx'),
 	route('jobs/add', './jobs/add/page.jsx'),
 ];
 
