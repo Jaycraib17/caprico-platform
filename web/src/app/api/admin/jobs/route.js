@@ -1,7 +1,6 @@
-import { requireAdmin } from '../../utils/adminAuth';
-import sql from '../../utils/sql';
-import { ensureDirectJobSchema, jsonNoCache } from '../../utils/directJobImporter';
-
+import { requireAdmin } from '../../utils/adminAuth.js';
+import sql from '../../utils/sql.js';
+import { createDirectJob, ensureDirectJobSchema, jsonNoCache } from '../../utils/directJobImporter.js';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -58,4 +57,21 @@ export async function GET(request) {
   const countResult = await sql(`SELECT COUNT(*)::int AS total FROM jobs j ${whereClause}`, params);
   const total = Number(countResult[0]?.total || 0);
   return jsonNoCache({ jobs, total, limit, offset, hasMore: offset + limit < total });
+}
+
+export async function POST(request) {
+  const { error } = await requireAdmin(request);
+  if (error) return error;
+
+  const body = await request.json().catch(() => ({}));
+
+  const result = await createDirectJob({
+    ...body,
+    official_apply_url: body.official_apply_url || body.apply_url,
+    apply_url: body.apply_url || body.official_apply_url,
+    source_url: body.source_url || body.official_apply_url || body.apply_url,
+    status: body.approve_immediately ? 'approved' : body.status || 'pending_review',
+  });
+
+  return jsonNoCache(result, { status: result.status || (result.ok ? 200 : 400) });
 }
