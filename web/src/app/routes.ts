@@ -113,9 +113,12 @@ if (import.meta.env.DEV) {
 	}
 }
 const tree = buildRouteTree(__dirname);
-// Keep /admin/jobs/new in the production manifest while preventing a duplicate generated entry.
+
+// Keep critical admin routes explicit so production builds do not depend solely
+// on the filesystem route scanner picking up newly-added nested pages.
 const explicitRoutePaths = new Set(['admin/jobs/new']);
 const explicitRoutes = [route('admin/jobs/new', './admin/jobs/new/page.jsx')];
+
 const notFound = route('*?', './__create/not-found.tsx');
 const routes = [...explicitRoutes, ...generateRoutes(tree, explicitRoutePaths), notFound];
 
