@@ -1,5 +1,5 @@
-import sql from './sql';
-import { ensureJobScoutSchema } from './jobScout';
+import sql from './sql.js';
+import { ensureJobScoutSchema } from './jobScout.js';
 
 export const OFFICIAL_ATS_DOMAINS = [
   'teamtailor.com',
