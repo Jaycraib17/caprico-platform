@@ -1,4 +1,4 @@
-import { ensureJobScoutSchema, discoverJobs, saveDiscoveredJobs } from '../../utils/jobScout';
+import { ensureJobScoutSchema, discoverJobs, saveDiscoveredJobs } from '../../utils/jobScout.js';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
