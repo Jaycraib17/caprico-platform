@@ -1,6 +1,6 @@
-import { requireAdmin } from '../../../utils/adminAuth';
-import sql from '../../../utils/sql';
-import { ensureDirectJobSchema, jsonNoCache } from '../../../utils/directJobImporter';
+import { requireAdmin } from '../../../utils/adminAuth.js';
+import sql from '../../../utils/sql.js';
+import { ensureDirectJobSchema, jsonNoCache } from '../../../utils/directJobImporter.js';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
