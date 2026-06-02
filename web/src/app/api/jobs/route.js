@@ -1,5 +1,5 @@
-import sql from '../utils/sql';
-import { ensureDirectJobSchema } from '../utils/directJobImporter';
+import sql from '../utils/sql.js';
+import { ensureDirectJobSchema } from '../utils/directJobImporter.js';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
