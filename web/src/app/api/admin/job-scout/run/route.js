@@ -1,5 +1,5 @@
-import { requireAdmin } from '../../../utils/adminAuth';
-import { ensureJobScoutSchema, discoverJobs, saveDiscoveredJobs } from '../../../utils/jobScout';
+import { requireAdmin } from '../../../utils/adminAuth.js';
+import { ensureJobScoutSchema, discoverJobs, saveDiscoveredJobs } from '../../../utils/jobScout.js';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
